@@ -19,7 +19,7 @@ import subprocess
 import time
 import logging
 import datetime
-import config
+#import config
 
 class oled:
 	'''	Oled class. Routines for driving the serial oled. '''
@@ -32,8 +32,8 @@ class oled:
 			parity=serial.PARITY_NONE,
 			stopbits=serial.STOPBITS_TWO)	# Note - not just one stop bit
 		#constants
-		self.rowlength = config.rowlength
-		self.rowcount = config.rowcount
+		self.rowlength = 16
+		self.rowcount = 2
 		self.rowselect = [128,192,148,212]	# the addresses of the start of each row
 		self.start=0
 		
