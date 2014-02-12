@@ -9,6 +9,8 @@ import datetime
 
 ROWS = 4
 BLANK = "                    "
+LOGFILE="/home/pi/hifi/log/display.log"
+
 row = ["" for x in range(ROWS+1)]
 oldrow = ["" for x in range(ROWS+1)]
 		
@@ -102,11 +104,11 @@ if __name__ == "__main__":
                     action="store_true")
 	args = parser.parse_args()
 	if args.verbose:
-		logging.basicConfig(	filename='log/display.log',
+		logging.basicConfig(	filename=LOGFILE,
 								filemode='w',
 								level=logging.DEBUG )
 	else:
-		logging.basicConfig(	filename='log/display.log',
+		logging.basicConfig(	filename=LOGFILE,
 								filemode='w',
 								level=logging.WARNING )
 	
