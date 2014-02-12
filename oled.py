@@ -1,6 +1,5 @@
 #!/usr/bin/python
-''' 
-  Module to control the picaxe OLED.
+'''Module to control the picaxe OLED.
   Updated to work with both 16x2 and 20x4 versions.
   Requires new picaxe fw that inverts serial polarity, i.e. N2400 -> T2400.
   The oled modules work fine off the RPi 3v3, which avoids the need for level shifting.
@@ -11,19 +10,16 @@
     edit /etc/inittab to comment out the last line (T0:23...)
   To get rid of the garbage from the pi bootup...
   edit /boot/cmdline.txt and remove both references to ...ttyAMA0...
-  Brightness control: http://www.picaxeforum.co.uk/entry.php?49-Winstar-OLED-Brightness-Control
-  
-'''
+  Brightness control: http://www.picaxeforum.co.uk/entry.php?49-Winstar-OLED-Brightness-Control'''
 import serial
 import subprocess
 import time
 import logging
 import datetime
-#import config
 
 class oled:
 	'''	Oled class. Routines for driving the serial oled. '''
-	def __init__(self):
+	def __init__(self, rows = 2):
 		self.logger = logging.getLogger(__name__)
 		self.port = serial.Serial(
 			port='/dev/ttyAMA0', 
@@ -32,8 +28,11 @@ class oled:
 			parity=serial.PARITY_NONE,
 			stopbits=serial.STOPBITS_TWO)	# Note - not just one stop bit
 		#constants
-		self.rowlength = 16
-		self.rowcount = 2
+		self.rowcount = rows
+		if rows == 2:
+			self.rowlength = 16
+		else:
+			self.rowlength = 20
 		self.rowselect = [128,192,148,212]	# the addresses of the start of each row
 		self.start=0
 		
@@ -45,31 +44,20 @@ class oled:
 		self.start = 0
 		time.sleep(.5)
 		return(0)
-	
-	def raspyfisong(self):
-		songName="               "
-		# Get current status and playtime
-		process = subprocess.Popen('mpc', shell=True, stdout=subprocess.PIPE)
-		status = process.communicate()[0]
-		statusLines = status.split('\n')
-	
-	# Check if mpc returns more that one line plus an extra, in that case we dont have stopped the music and can parse additional information
-		if len(statusLines) > 2:		
-			# Extract the songName (first line)
-			songName = statusLines[0]
-		self.writerow(1,songName)
-		return(songName)
-		
-	def radiofirstrow(self):
-		p = subprocess.check_output("mpc current", shell=True)
-	#	p.wait()
-		print "Station:",p[16:]
-		self.writerow(1,p[16:]+"    ")
+				
+#	def radiofirstrow(self):
+#		p = subprocess.check_output("mpc current", shell=True)
+#		print "Station:",p[16:]
+#		self.writerow(1,p[16:]+"    ")
 	
 	def cleardisplay(self):
+		logging.info("Clearing display")
 		self.port.write(chr(254))		# cmd
 		self.port.write(chr(1))			# clear display
-		time.sleep(.5)
+		time.sleep(.5)					# required to give it time to clear
+		self.port.write(chr(254))		# cmd
+		self.port.write(chr(128))		# move to row1, position 1
+		return(0)
 
 	def writerow(self,row,string):
 		self.port.write(chr(254))		# cmd
