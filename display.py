@@ -92,6 +92,7 @@ def displaystart():
 				row[4] = ""
 				for i in range(0,int(r),5):		# add a char every 5%
 					row[4] += ">"
+				row[4] += "     "
 #				row[4] = q+"     "+r+BLANK
 		updatedisplay()
 		time.sleep(2)

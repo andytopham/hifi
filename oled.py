@@ -3,7 +3,6 @@
   Updated to work with both 16x2 and 20x4 versions.
   Requires new picaxe fw that inverts serial polarity, i.e. N2400 -> T2400.
   The oled modules work fine off the RPi 3v3, which avoids the need for level shifting.
-  Imported by iradio.
   Requires the installation of the python serial module. Install by:
 	sudo apt-get install python-serial
     edit /boot/cmdline.txt to remove all refs to console=ttyAMA0... and kgdboc=ttyAMA0...
@@ -21,12 +20,8 @@ class oled:
 	'''	Oled class. Routines for driving the serial oled. '''
 	def __init__(self, rows = 2):
 		self.logger = logging.getLogger(__name__)
-		self.port = serial.Serial(
-			port='/dev/ttyAMA0', 
-			baudrate=2400, 
-			bytesize=serial.EIGHTBITS,
-			parity=serial.PARITY_NONE,
-			stopbits=serial.STOPBITS_TWO)	# Note - not just one stop bit
+		self.port = serial.Serial(port='/dev/ttyAMA0', baudrate=2400, bytesize=serial.EIGHTBITS,
+			parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_TWO)	# Note - not just one stop bit
 		#constants
 		self.rowcount = rows
 		if rows == 2:
@@ -45,11 +40,6 @@ class oled:
 		time.sleep(.5)
 		return(0)
 				
-#	def radiofirstrow(self):
-#		p = subprocess.check_output("mpc current", shell=True)
-#		print "Station:",p[16:]
-#		self.writerow(1,p[16:]+"    ")
-	
 	def cleardisplay(self):
 		logging.info("Clearing display")
 		self.port.write(chr(254))		# cmd
