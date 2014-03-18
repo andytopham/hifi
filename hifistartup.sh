@@ -27,7 +27,8 @@ PIDFILE=/var/run/$DAEMON_NAME.pid
 . /lib/lsb/init-functions
  
 do_start () {
-    log_daemon_msg "Starting system $DAEMON_NAME daemon"
+    log_daemon_msg "Starting andyt system $DAEMON_NAME daemon"
+    log_daemon_msg "Source: $DAEMON"
     start-stop-daemon --start --background --pidfile $PIDFILE --make-pidfile --user $DAEMON_USER --chuid $DAEMON_USER --startas $DAEMON
     log_end_msg $?
 }

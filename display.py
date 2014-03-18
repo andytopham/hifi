@@ -7,7 +7,7 @@ import argparse
 import logging
 import datetime
 
-ROWS = 4
+ROWS = 2
 BLANK = "                    "
 LOGFILE="/home/pi/hifi/log/display.log"
 
@@ -44,12 +44,11 @@ def updatedisplay():
 
 def displaystart():
 	'''The main loop for polling mpc for information and putting onto the OLED.'''
-	logging.info("Displaystart")
+	logging.info("displaystart")
 	for i in range(1,ROWS+1):
 		row[i] = ""
 		oldrow[i] = ""
 	counter=0
-#	myOled=oled.oled(ROWS)
 	myOled.cleardisplay()
 	if ROWS == 4:
 		timerow = 4
@@ -119,6 +118,7 @@ if __name__ == "__main__":
 
 	print "Running display.py as a standalone app"
 	logging.info("OLED rows="+str(ROWS))
+	time.sleep(10)			# make sure everything is running first
 	myOled=oled.oled(ROWS)
 	displaystart()
 	

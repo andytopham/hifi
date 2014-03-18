@@ -1,4 +1,10 @@
 #!/bin/sh
+echo "** Installing fileset needed for hifi appliance display system. **"
+# first, check user is root
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root" 1>&2
+   exit 1
+fi
 echo "hifi display installer"
 echo
 echo "apt-get update"
@@ -16,7 +22,7 @@ echo
 echo "pip install requests"
 pip install requests
 echo
-echo"pip install python-mpd2"
+echo "pip install python-mpd2"
 pip install python-mpd2
 echo
 echo "pip install logging"
@@ -36,4 +42,6 @@ echo "Starting autostart of display.py"
 cp hifistartup.sh /etc/init.d
 chmod 755 /etc/init.d/hifistartup.sh
 update-rc.d hifistartup.sh defaults
+echo "display.py must be executable for autostart."
+chmod +x display.py
 echo
