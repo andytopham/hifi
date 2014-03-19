@@ -17,16 +17,17 @@ class BBC2webradio:
 	URLID = 0
 	URLSTREAM = 1
 	URLDETAILS = 2
-	urls = [["BBCR2", "r2_aaclca.pls", "http://www.bbc.co.uk/radio/player/bbc_radio_two" ],
-			["BBCR4", "r4_aaclca.pls", "http://www.bbc.co.uk/radio/player/bbc_radio_four" ],
-			["BBCR4x", "r4x_aaclca.pls", "http://www.bbc.co.uk/radio/player/bbc_radio_four_extra"],
-			["BBCR5", "r5l_aaclca.pls", "http://www.bbc.co.uk/radio/player/bbc_radio_five_live"],
-			["BBCR6", "r6_aaclca.pls", "http://www.bbc.co.uk/radio/player/bbc_6music"]
-			]
+	urls = [
+		["BBCR2", "r2_aaclca.pls", "http://www.bbc.co.uk/radio/player/bbc_radio_two" ],
+		["BBCR4", "r4_aaclca.pls", "http://www.bbc.co.uk/radio/player/bbc_radio_four" ],
+		["BBCR4x", "r4x_aaclca.pls", "http://www.bbc.co.uk/radio/player/bbc_radio_four_extra"],
+		["BBCR5", "r5l_aaclca.pls", "http://www.bbc.co.uk/radio/player/bbc_radio_five_live"],
+		["BBCR6", "r6_aaclca.pls", "http://www.bbc.co.uk/radio/player/bbc_6music"]
+		]
 					
 	def __init__(self):
 		self.logger = logging.getLogger(__name__)
-		__all__ = ['stationcount', 'load', 'stationname']		# list the functions available here
+		__all__ = ['stationcount', 'load', 'stationname']	#list functions available
 
 	def stationcount(self):
 		'''Return the number of radio station urls.'''
@@ -35,18 +36,45 @@ class BBC2webradio:
 	def load(self):
 		'''Load the pls stations stored in the urls array into the webradio location. '''
 		maxstation = self.stationcount()
-		self.logger.warning("Getting BBC stations loaded")		# refresh periodically, warning level since hardly ever in log
+		self.logger.warning("Getting BBC stations loaded")	
 		for i in self.urls:
 			self.logger.info("Fetching: "+i[self.URLID])
 			try:
 				source = ' http://www.bbc.co.uk/radio/listen/live/'+i[self.URLSTREAM]
 				destination = PLAYLISTDIR+i[self.URLSTREAM]
-				p = subprocess.Popen('wget -O '+destination+source, shell=True)	# need to trap errors here.
-				p.wait()		# need to wait for the last cmd to finish before we can read the file.
+				p = subprocess.Popen('wget -O '+destination+source, shell=True)
+				p.wait()		# need to wait for the last cmd to finish 
 			except HTTPError, e:
 				self.logger.error("Failed to fetch address for "+i[self.URLID], exc_info=True)
 				maxstation -= 1					# not as many as we planned
+			stream = self.process_pls(destination)
+			self.create_m3u(i[self.URLID], stream)
 		return(maxstation)
+	
+	def process_pls(self, pls):
+		'''Get the actual stream info from the already fetched pls files.'''
+		self.logger.info("Opening the stream file: "+pls)
+		try:
+			source=open(pls,'r')
+			source.readline()				# this dumps first line of file
+			source.readline()				# dump
+			this_line = source.readline()
+			print 'This line: ',this_line
+			source.close()					# do we need this??
+		except:
+			logging.warning("Could not open: "+pls, exc_info=True)
+#		return(re.escape((this_line[6:])))
+		return(this_line[6:])
+		
+	def create_m3u(self, id, stream_file):
+		'''Create one m3u file for this stream.'''
+		m3u_destination = PLAYLISTDIR+id+'.m3u'
+		f = open(m3u_destination, 'w')
+		f.write('#EXTM3U\n')
+		f.write('#EXTINF:-1, BBC - '+id+'\n') # -1 for streams
+		f.write(stream_file)
+		f.close()
+		return(0)
 		
 	def _stationscanner(self):
 		''' A test routine to find out how often the bbc updates the pls files.'''
