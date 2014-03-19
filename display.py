@@ -1,11 +1,7 @@
 #!/usr/bin/python
 '''Display the song and time on the Volumio display.'''
 import oled
-import time
-import subprocess
-import argparse
-import logging
-import datetime
+import time, subprocess, datetime, argparse, logging
 
 ROWS = 2
 BLANK = "                    "
@@ -13,27 +9,7 @@ LOGFILE="/home/pi/hifi/log/display.log"
 
 row = ["" for x in range(ROWS+1)]
 oldrow = ["" for x in range(ROWS+1)]
-		
-def elapsedtime():
-	'''Return the elapsed time through the current song.'''
-	try:
-		p = subprocess.check_output(["mpc"])
-		q = p.splitlines()[1].split()[2].split("/")[0]
-		logging.info("Elapsed time "+q)
-	except:
-		q=""
-	return(q)
-
-def elapsedpercentage():
-	'''Return the elapsed percentage progress through the current song.'''
-	try:
-		p = subprocess.check_output(["mpc"])
-		q = p.splitlines()[1].split()[3].strip("()%")
-		logging.info("Elapsed percentage "+q)
-	except:
-		q=""
-	return(q)
-	
+			
 def updatedisplay():
 	'''Write the 4 strings to the OLED.'''
 	for i in range(1,ROWS+1):
@@ -41,6 +17,47 @@ def updatedisplay():
 			myOled.writerow(i,row[i])
 	for i in range(1,ROWS+1):
 		oldrow[i] = row[i]
+
+def mpc_status():
+	'''Ask mpc what is playing.'''
+	p = subprocess.check_output(["mpc"])
+	if '[playing]' in p:
+		playing = True
+		artist = p.splitlines()[0].split('-')[0].strip()
+		title = p.splitlines()[0].split('-')[1].strip()
+		volume = p.splitlines()[2].split(':')[1].split('%')[0]
+		progress = p.splitlines()[1].split()[3].strip('()%')
+	else:			# stopped
+		playing = False
+		artist = 'Stopped'
+		title = 'Stopped'
+		volume = p.split(':')[1].split('%')[0]
+		progress = 0
+	logging.info('Artist:'+artist+' Title:'+title+' Vol:'+str(volume)+' Progress:'+str(progress))
+	return(playing, artist, title, volume, progress)
+
+def put_time_on_display():
+	'''Just put current time on oled, for when nothing playing.'''
+	if ROWS == 4:
+		row[1] = BLANK
+		row[2] = BLANK
+		row[3] = BLANK
+		row[4] = time.strftime("%R")+BLANK
+	else:
+		row[1] = BLANK
+		row[2] = time.strftime("%R")+BLANK
+
+def show_progress(p, title):
+	'''Put the title overflow + progress bar on the oled.'''
+	if ROWS == 4:
+		if len(title) > 20:
+			row[3] = title[20:]+BLANK
+		else:
+			row[3] = BLANK		
+		row[4] = ""
+		for i in range(0,int(p),5):		# add a char every 5%
+			row[4] += ">"
+		row[4] += "     "
 
 def displaystart():
 	'''The main loop for polling mpc for information and putting onto the OLED.'''
@@ -63,36 +80,14 @@ def displaystart():
 	time.sleep(3)
 
 	while True:
-		p = subprocess.check_output(["mpc", "-f", "%artist%", "current"])
-		if p == "":				# its stopped
+		playing, artist, title, volume, progress = mpc_status()
+		if playing:
+			row[1] = artist+BLANK
+			row[2] = title+BLANK
+			show_progress(progress, title)
+		else:				# stopped
 			logging.info("Stopped: "+time.strftime("%R"))
-			if ROWS == 4:
-				row[1] = BLANK
-				row[2] = BLANK
-				row[3] = BLANK
-				row[4] = time.strftime("%R")+BLANK
-			else:
-				row[1] = BLANK
-				row[2] = time.strftime("%R")+BLANK
-			q = ""
-		else:					# something is playing
-			q = elapsedtime()
-			r = elapsedpercentage()
-			logging.info("Artist:",p.splitlines()[0])
-			row[1] = p+BLANK
-			p = subprocess.check_output(["mpc", "-f", "%title%", "current"])
-			logging.info("Song:",p.splitlines()[0])
-			row[2] = p+BLANK
-			if ROWS == 4:
-				if len(p) > 20:
-					row[3] = p[20:]+BLANK
-				else:
-					row[3] = BLANK		
-				row[4] = ""
-				for i in range(0,int(r),5):		# add a char every 5%
-					row[4] += ">"
-				row[4] += "     "
-#				row[4] = q+"     "+r+BLANK
+			put_time_on_display()
 		updatedisplay()
 		time.sleep(2)
 	
