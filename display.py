@@ -12,21 +12,30 @@ oldrow = ["" for x in range(ROWS+1)]
 			
 def updatedisplay():
 	'''Write the 4 strings to the OLED.'''
-	for i in range(1,ROWS+1):
-		if row[i] != oldrow[i]:
-			myOled.writerow(i,row[i])
-	for i in range(1,ROWS+1):
-		oldrow[i] = row[i]
+	try:
+		for i in range(1,ROWS+1):
+			if row[i] != oldrow[i]:
+				myOled.writerow(i,row[i])
+		for i in range(1,ROWS+1):
+			oldrow[i] = row[i]
+	except:
+		logging.warning("failed to update display")
 
 def mpc_status():
 	'''Ask mpc what is playing.'''
 	p = subprocess.check_output(["mpc"])
 	if '[playing]' in p:
 		playing = True
-		artist = p.splitlines()[0].split('-')[0].strip()
-		title = p.splitlines()[0].split('-')[1].strip()
-		volume = p.splitlines()[2].split(':')[1].split('%')[0]
-		progress = p.splitlines()[1].split()[3].strip('()%')
+		if 'BBC' in p:
+			artist = 'BBC'
+			title = p.splitlines()[0]
+			volume = '0'
+			progress = '0'
+		else:
+			artist = p.splitlines()[0].split('-')[0].strip()
+			title = p.splitlines()[0].split('-')[1].strip()
+			volume = p.splitlines()[2].split(':')[1].split('%')[0]
+			progress = p.splitlines()[1].split()[3].strip('()%')
 	else:			# stopped
 		playing = False
 		artist = 'Stopped'
@@ -67,6 +76,7 @@ def displaystart():
 		oldrow[i] = ""
 	counter=0
 	myOled.cleardisplay()
+#	print "cleared display"
 	if ROWS == 4:
 		timerow = 4
 	else:
@@ -80,7 +90,15 @@ def displaystart():
 	time.sleep(3)
 
 	while True:
-		playing, artist, title, volume, progress = mpc_status()
+		try:
+			playing, artist, title, volume, progress = mpc_status()
+		except:
+			logging.warning(datetime.datetime.now().strftime('%d %b %H:%M')+" Failed to fetch mpc status")
+			put_time_on_display()
+			row[1] = "mpc_status err"+BLANK
+			updatedisplay()
+			time.sleep(5)
+			continue
 		if playing:
 			row[1] = artist+BLANK
 			row[2] = title+BLANK
@@ -113,7 +131,7 @@ if __name__ == "__main__":
 
 	print "Running display.py as a standalone app"
 	logging.info("OLED rows="+str(ROWS))
-	time.sleep(10)			# make sure everything is running first
+	time.sleep(5)			# make sure everything is running first
 	myOled=oled.oled(ROWS)
 	displaystart()
 	

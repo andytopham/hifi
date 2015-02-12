@@ -1,11 +1,6 @@
 #!/usr/bin/python
 ''' Load BBC radio stations for Volumio.'''
-import re
-import subprocess
-import time
-import logging
-import datetime
-import requests
+import subprocess, time, logging, datetime, requests
 from bs4 import BeautifulSoup
 
 PLAYLISTDIR = '/var/lib/mpd/music/WEBRADIO/'
@@ -59,7 +54,7 @@ class BBC2webradio:
 			source.readline()				# this dumps first line of file
 			source.readline()				# dump
 			this_line = source.readline()
-			print 'This line: ',this_line
+#			print 'This line: ',this_line
 			source.close()					# do we need this??
 		except:
 			logging.warning("Could not open: "+pls, exc_info=True)
@@ -71,7 +66,7 @@ class BBC2webradio:
 		m3u_destination = PLAYLISTDIR+id+'.m3u'
 		f = open(m3u_destination, 'w')
 		f.write('#EXTM3U\n')
-		f.write('#EXTINF:-1, BBC - '+id+'\n') # -1 for streams
+		f.write('#EXTINF:-1,'+id+' - streaming\n') # -1 for streams
 		f.write(stream_file)
 		f.close()
 		return(0)
@@ -97,7 +92,6 @@ class BBC2webradio:
 				source.readline()
 				line=source.readline()
 				source.close()			# do we need this??
-				#print line[6:]
 				print line[90:]
 
 	def stationname(self, station):
