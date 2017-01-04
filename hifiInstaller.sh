@@ -42,6 +42,14 @@ echo "Starting autostart of display.py"
 cp hifistartup.sh /etc/init.d
 chmod 755 /etc/init.d/hifistartup.sh
 update-rc.d hifistartup.sh defaults
-echo "display.py must be executable for autostart."
 chmod +x display.py
-echo
+# This next bit only works for Volumio 1
+# BBC stream locations can be found at....
+# http://www.suppertime.co.uk/blogmywiki/2015/04/updated-list-of-bbc-network-radio-urls/
+echo "Copy BBC playlist files"
+cp BBCR* /var/lib/mpd/music/WEBRADIO
+
+echo "** ToDo: **"
+echo "Disable linux write to serial port by removing AMA refs in /boot/cmdline.txt"
+echo "Enable serial port by adding enable_uart=1 to /boot/cmdline.txt"
+echo " ********* "

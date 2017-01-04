@@ -5,7 +5,7 @@ import time, subprocess, datetime, argparse, logging
 
 ROWS = 2
 BLANK = "                    "
-LOGFILE="/home/pi/hifi/log/display.log"
+LOGFILE="/home/volumio/master/hifi/log/display.log"
 
 row = ["" for x in range(ROWS+1)]
 oldrow = ["" for x in range(ROWS+1)]
@@ -26,7 +26,7 @@ def mpc_status():
 	p = subprocess.check_output(["mpc"])
 	if '[playing]' in p:
 		playing = True
-		if 'BBC' in p:
+		if 'bbc' in p:
 			artist = 'BBC'
 			title = p.splitlines()[0]
 			volume = '0'
