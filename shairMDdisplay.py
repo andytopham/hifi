@@ -5,7 +5,7 @@ import time, sys, datetime, argparse, logging
 
 ROWS = 2
 BLANK = "                    "
-LOGFILE="./log/shairMDdisplay.log"
+LOGFILE="/home/pi/master/hifi/log/shairMDdisplay.log"
 PIPE = "/tmp/shairport-sync-metadata"
 
 row = ["" for x in range(ROWS+1)]
